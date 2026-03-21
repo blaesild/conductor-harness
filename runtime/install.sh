@@ -287,7 +287,11 @@ echo "5. Fill in WORKFLOW.md — injected into every Claude Code session as proj
 echo "   Or type /setup inside Claude Code to auto-generate it from your project structure."
 echo ""
 if [ "$USE_RAILWAY" = "y" ] || [ "$USE_RAILWAY" = "yes" ]; then
-  echo "6. Edit conductor.json and replace the RAILWAY_* placeholders."
+  echo "6. Add Railway IDs to .env (or .env.local):"
+  echo "   RAILWAY_PROJECT_ID=your-project-id"
+  echo "   RAILWAY_ENVIRONMENT_ID=your-environment-id"
+  echo "   RAILWAY_SERVICE_ID=your-service-id"
+  echo "   Find these in your Railway project settings."
   echo ""
 fi
 echo "Docs: https://github.com/blaesild/conductor-harness"

@@ -8,4 +8,4 @@ Show current harness status:
 2. Show `.harness/progress.md` contents if it exists.
 3. Show `git log --oneline -5`.
 4. Show `git status --short`.
-5. Check if any Graphiti memory exists for this task (use memory skill to search by branch name).
+5. Check if any Hindsight memory exists for this task (use memory skill to recall by branch name).
