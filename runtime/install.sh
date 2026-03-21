@@ -32,7 +32,7 @@ echo "Detected package manager: $PKG_MANAGER"
 
 # ── 3. Railway prompt ────────────────────────────────────────────────────────
 read -r -p "Does this project use Railway? [y/N] " USE_RAILWAY
-USE_RAILWAY="${USE_RAILWAY,,}"
+USE_RAILWAY="$(echo "$USE_RAILWAY" | tr '[:upper:]' '[:lower:]')"
 
 # ── 4. Create .claude subdirs ────────────────────────────────────────────────
 mkdir -p \

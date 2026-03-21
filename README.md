@@ -16,6 +16,68 @@ A Claude Code harness for [Conductor](https://conductor.build) projects. Install
 
 ---
 
+## Setup
+
+### 1. Install MCP servers (once per machine)
+
+**Graphiti memory** (Zep Cloud) — stores decisions and context across sessions:
+```bash
+export ZEP_API_KEY=your_zep_api_key
+claude mcp add graphiti-memory \
+  --transport sse \
+  --url https://mcp.getzep.com/sse \
+  --header "Authorization: Api-Key $ZEP_API_KEY"
+```
+
+**Linear** — read and update issues from Claude Code:
+```bash
+claude mcp add linear -s user -- npx -y @linear/mcp-server
+```
+
+**Context7** — fetch up-to-date framework and package docs:
+```bash
+claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
+```
+
+### 2. Install the harness into a project
+
+From your project root (must be a git repo):
+```bash
+npx conductor-harness
+```
+
+The installer will ask two questions:
+- **Package manager** — auto-detected from your lockfile
+- **Railway?** — adds `railway link` to the Conductor setup command
+
+### 3. Configure Railway (if applicable)
+
+Add to your `.env`:
+```env
+RAILWAY_PROJECT_ID=your-project-id
+RAILWAY_ENVIRONMENT_ID=your-environment-id
+RAILWAY_SERVICE_ID=your-service-id
+```
+
+### 4. Fill in WORKFLOW.md
+
+Either edit it manually or let Claude generate it:
+```
+/setup
+```
+
+### 5. Start working
+
+Open the project in Claude Code via Conductor. The SessionStart hook fires automatically and injects your project context.
+
+```
+/start LIN-123    ← kick off a task
+/done             ← close it out, write memory
+/status           ← check current state
+```
+
+---
+
 ## Requirements
 
 - [Claude Code](https://claude.ai/code)
@@ -23,84 +85,9 @@ A Claude Code harness for [Conductor](https://conductor.build) projects. Install
 - Node.js 18+
 - A git repository
 
-**Recommended MCP servers** (register once per machine):
-
-```bash
-# Graphiti memory (Zep Cloud)
-claude mcp add graphiti-memory \
-  --transport sse \
-  --url https://mcp.getzep.com/sse \
-  --header "Authorization: Api-Key $ZEP_API_KEY"
-
-# Linear
-claude mcp add linear -s user -- npx -y @linear/mcp-server
-
-# Context7 (up-to-date docs)
-claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
-```
-
----
-
-## Install
-
-Run from your project root:
-
-```bash
-npx conductor-harness
-```
-
-The installer will:
-
-1. Detect your package manager (pnpm / yarn / bun / npm)
-2. Ask if the project uses Railway
-3. Copy hooks, commands, skills, and agents into `.claude/`
-4. Merge harness hooks and permissions into `.claude/settings.local.json`
-5. Write `CLAUDE.md` with orchestration principles and harness configuration
-6. Write `conductor.json` with setup, run, and archive commands
-7. Create `WORKFLOW.md` for project context
-8. Create `.harness/progress.md` for session state
-
-Re-running is safe — `settings.local.json` is always merged, never overwritten.
-
----
-
-## Railway projects
-
-If your project uses Railway, add these to your `.env`:
-
-```env
-RAILWAY_PROJECT_ID=your-project-id
-RAILWAY_ENVIRONMENT_ID=your-environment-id
-RAILWAY_SERVICE_ID=your-service-id
-```
-
-The generated `conductor.json` setup command will pick them up automatically via `source .env`.
-
----
-
-## After install
-
-**Fill in `WORKFLOW.md`** — or let Claude generate it:
-
-```
-/setup
-```
-
-**Start a task:**
-
-```
-/start LIN-123
-```
-
 Or attach a Linear issue via Conductor's `+` button and type `/start` — the harness reads it directly without an MCP fetch.
 
-**End a task:**
-
-```
-/done
-```
-
-Closes the Linear issue, writes a Graphiti memory episode, and resets progress state.
+`/done` closes the Linear issue, writes a Graphiti memory episode, and resets progress state.
 
 ---
 
