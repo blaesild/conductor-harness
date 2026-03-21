@@ -8,7 +8,7 @@ A Claude Code harness for [Conductor](https://conductor.build) projects. Install
 
 - **SessionStart hook** — injects branch, recent commits, last session progress, and `WORKFLOW.md` context before every Claude Code session
 - **Linear integration** — reads attached issues directly from Conductor's `+` button; falls back to Linear MCP for comments and history
-- **Graphiti memory** — searches past decisions before starting work; writes episodes after `/done`
+- **Hindsight memory** — searches past decisions before starting work; writes memories after `/done`
 - **Context7 docs** — fetches up-to-date framework and package documentation before planning or implementing
 - **`/start`, `/done`, `/status`** — task kickoff and closeout rituals that keep progress state and memory in sync
 - **`/setup`** — analyzes your project and auto-generates `WORKFLOW.md`
@@ -20,14 +20,10 @@ A Claude Code harness for [Conductor](https://conductor.build) projects. Install
 
 ### 1. Install MCP servers (once per machine)
 
-**Graphiti memory** (Zep Cloud) — stores decisions and context across sessions:
-```bash
-export ZEP_API_KEY=your_zep_api_key
-claude mcp add graphiti-memory \
-  --transport sse \
-  --url https://mcp.getzep.com/sse \
-  --header "Authorization: Api-Key $ZEP_API_KEY"
-```
+**Hindsight** — persistent cross-session memory for decisions, gotchas, and patterns:
+1. Get an API key at [ui.hindsight.vectorize.io/connect](https://ui.hindsight.vectorize.io/connect)
+2. Add to your `.env`: `HINDSIGHT_API_KEY=your_key_here`
+3. The installer creates `.mcp.json` with the Hindsight config automatically — no CLI command needed.
 
 **Linear** — read and update issues from Claude Code:
 ```bash

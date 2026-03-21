@@ -224,7 +224,41 @@ else
   echo "✓ WORKFLOW.md already exists (skipped)"
 fi
 
-# ── 15. Next steps ────────────────────────────────────────────────────────────
+# ── 15. .mcp.json — create or append Hindsight MCP entry ─────────────────────
+MCP_JSON="$TARGET_DIR/.mcp.json"
+
+python3 - "$MCP_JSON" <<'PYEOF'
+import sys, json, os
+
+mcp_path = sys.argv[1]
+
+hindsight_entry = {
+    "type": "http",
+    "url": "https://api.hindsight.vectorize.io/mcp/Claude/",
+    "headers": {
+        "Authorization": "Bearer ${HINDSIGHT_API_KEY}"
+    }
+}
+
+if os.path.exists(mcp_path):
+    with open(mcp_path) as f:
+        data = json.load(f)
+    if "mcpServers" not in data:
+        data["mcpServers"] = {}
+    if "hindsight" not in data["mcpServers"]:
+        data["mcpServers"]["hindsight"] = hindsight_entry
+        print("✓ Hindsight MCP added to existing .mcp.json")
+    else:
+        print("✓ .mcp.json already has hindsight entry (skipped)")
+else:
+    data = {"mcpServers": {"hindsight": hindsight_entry}}
+    print("✓ .mcp.json created with Hindsight MCP")
+
+with open(mcp_path, "w") as f:
+    json.dump(data, f, indent=2)
+PYEOF
+
+# ── 16. Next steps ────────────────────────────────────────────────────────────
 echo ""
 echo "══════════════════════════════════════════════════"
 echo "  Harness installed successfully!"
@@ -232,12 +266,9 @@ echo "════════════════════════�
 echo ""
 echo "Next steps:"
 echo ""
-echo "1. Register Zep Cloud memory MCP (once per machine):"
-echo "   export ZEP_API_KEY=your_zep_api_key_here"
-echo "   claude mcp add graphiti-memory \\"
-echo "     --transport sse \\"
-echo "     --url https://mcp.getzep.com/sse \\"
-echo "     --header \"Authorization: Api-Key \$ZEP_API_KEY\""
+echo "1. Add your Hindsight API key to .env:"
+echo "   HINDSIGHT_API_KEY=your_key_here"
+echo "   Get a key at: https://ui.hindsight.vectorize.io/connect"
 echo ""
 echo "2. Register Linear MCP (once per machine, if not already):"
 echo "   claude mcp add linear -s user -- npx -y @linear/mcp-server"

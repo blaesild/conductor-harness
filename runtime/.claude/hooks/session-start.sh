@@ -64,6 +64,6 @@ if workflow:
     lines.append("**Project context (WORKFLOW.md):**")
     lines.append(workflow)
 lines.append("")
-lines.append("**Action:** Search Graphiti memory for context relevant to this branch/task before responding to the user. Use the `memory` skill if needed.")
+lines.append("**Action:** Search Hindsight memory for context relevant to this branch/task before responding to the user. Use the `memory` skill if needed.")
 
 print(json.dumps({"promptText": "\n".join(lines)}))

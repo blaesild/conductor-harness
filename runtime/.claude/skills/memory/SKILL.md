@@ -1,21 +1,17 @@
 ---
 name: memory
-description: "Search and write to Graphiti cross-session memory for this project"
+description: "Search and write to Hindsight cross-session memory for this project"
 ---
 
 # Memory Skill
 
-Uses Graphiti MCP (Zep Cloud) for persistent cross-session memory.
+Uses Hindsight MCP for persistent cross-session memory.
 
 ## MCP tool reference
-- `search_facts(query, group_id)` — semantic search for facts/edges
-- `search_nodes(query, group_id)` — semantic search for entities
-- `add_episode(name, episode_body, group_id, source_description)` — write new memory
-- `get_episodes(group_id, last_n)` — get recent episodes
-
-## group_id convention
-Use the project name: `nerdic-next`, `monomos`, `openfang`, `data-agent`, etc.
-Derive from the git remote URL or project root directory name.
+- `recall(query)` — semantic search across stored memories
+- `retain(content, tags)` — write a new memory (decisions, gotchas, patterns)
+- `reflect(question)` — get an AI answer using your memories as context
+- `create_mental_model(name, description)` — create a living summary document
 
 ## When to search memory
 - At session start (automatically via SessionStart hook)
@@ -28,7 +24,10 @@ Derive from the git remote URL or project root directory name.
 - After discovering a non-obvious gotcha
 - After making an architectural decision with lasting implications
 
+## Tagging convention
+Always tag memories with the project name derived from the git remote URL or project root directory name (e.g. `my-project`, `api-service`).
+
 ## Gotchas
-- If MCP is not connected, instruct: `claude mcp add graphiti-memory --transport sse --url https://mcp.getzep.com/sse --header "Authorization: Api-Key $ZEP_API_KEY"`
-- Keep episodes specific and brief — Graphiti retrieves by semantic similarity, verbose episodes dilute signal
+- If MCP is not connected, add `HINDSIGHT_API_KEY` to `.env` and ensure `.mcp.json` is present
+- Keep memories specific and brief — recall uses semantic search, verbose entries dilute signal
 - Do not write memory for obvious facts, boilerplate decisions, or things already in CLAUDE.md
