@@ -81,8 +81,8 @@ with open(settings_path) as f:
     existing = json.load(f)
 
 harness_hooks = {
-    "SessionStart": [{"type": "command", "command": ".claude/hooks/session-start.sh"}],
-    "Stop": [{"type": "command", "command": ".claude/hooks/stop.sh", "timeout": 30}]
+    "SessionStart": {"matcher": "", "hooks": [{"type": "command", "command": ".claude/hooks/session-start.sh"}]},
+    "Stop": {"matcher": "", "hooks": [{"type": "command", "command": ".claude/hooks/stop.sh", "timeout": 30}]}
 }
 
 harness_allow = [
@@ -97,16 +97,20 @@ harness_deny = [
     "Bash(git push -f *)"
 ]
 
-# Merge hooks
+# Merge hooks — each event is a list of {matcher, hooks} objects
 if "hooks" not in existing:
     existing["hooks"] = {}
-for event, entries in harness_hooks.items():
+for event, entry in harness_hooks.items():
     if event not in existing["hooks"]:
         existing["hooks"][event] = []
-    existing_cmds = [h.get("command") for h in existing["hooks"][event]]
-    for entry in entries:
-        if entry.get("command") not in existing_cmds:
-            existing["hooks"][event].append(entry)
+    existing_cmds = [
+        cmd.get("command")
+        for h in existing["hooks"][event]
+        for cmd in h.get("hooks", [])
+    ]
+    cmd = entry["hooks"][0].get("command")
+    if cmd not in existing_cmds:
+        existing["hooks"][event].append(entry)
 
 # Merge permissions
 if "permissions" not in existing:
@@ -279,8 +283,8 @@ echo "4. Start a task: /start LIN-123"
 echo "   End a task:   /done"
 echo "   Check status: /status"
 echo ""
-echo "5. Fill in WORKFLOW.md — this is injected into every Claude Code session as project context."
-echo "   Or run /setup to auto-generate it from your project structure."
+echo "5. Fill in WORKFLOW.md — injected into every Claude Code session as project context."
+echo "   Or type /setup inside Claude Code to auto-generate it from your project structure."
 echo ""
 if [ "$USE_RAILWAY" = "y" ] || [ "$USE_RAILWAY" = "yes" ]; then
   echo "6. Edit conductor.json and replace the RAILWAY_* placeholders."

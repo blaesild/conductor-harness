@@ -57,10 +57,11 @@ RAILWAY_SERVICE_ID=your-service-id
 
 ### 4. Fill in WORKFLOW.md
 
-Either edit it manually or let Claude generate it:
+Either edit `WORKFLOW.md` manually, or open the project in Claude Code and run:
 ```
 /setup
 ```
+This is a Claude Code slash command — type it in the Claude Code chat, not in the terminal.
 
 ### 5. Start working
 
