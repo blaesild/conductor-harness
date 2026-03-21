@@ -1,6 +1,6 @@
 # conductor-harness
 
-A Claude Code harness for [Conductor](https://conductor.so) projects. Installs session hooks, memory integration, Linear workflow, and project context injection into any git repo in under a minute.
+A Claude Code harness for [Conductor](https://conductor.build) projects. Installs session hooks, memory integration, Linear workflow, and project context injection into any git repo in under a minute.
 
 ---
 
@@ -19,7 +19,7 @@ A Claude Code harness for [Conductor](https://conductor.so) projects. Installs s
 ## Requirements
 
 - [Claude Code](https://claude.ai/code)
-- [Conductor](https://conductor.so)
+- [Conductor](https://conductor.build)
 - Node.js 18+
 - A git repository
 
