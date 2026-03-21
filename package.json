@@ -1,0 +1,21 @@
+{
+  "name": "conductor-harness",
+  "version": "1.0.0",
+  "description": "Claude Code harness for Conductor projects — hooks, memory, Linear, and workflow context",
+  "bin": {
+    "conductor-harness": "./bin/conductor-harness.js"
+  },
+  "files": [
+    "bin",
+    "runtime"
+  ],
+  "keywords": ["claude-code", "conductor", "ai", "harness", "linear", "railway"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blaesild/conductor-harness.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

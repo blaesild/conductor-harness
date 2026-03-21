@@ -18,6 +18,8 @@
 
 **Memory over lessons**: After /done, a Graphiti episode is written. Before non-trivial work, search memory for past decisions. This is the self-improvement loop.
 
+**Docs over assumptions**: AI knowledge has a cutoff. Before using any framework, library, or package API — fetch current docs via Context7 (`mcp__claude_ai_Context7__resolve-library-id` then `mcp__claude_ai_Context7__query-docs`). Never assume an API is current. This applies in plan mode too.
+
 ---
 
 ## Harness

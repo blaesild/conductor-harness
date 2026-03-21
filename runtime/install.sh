@@ -66,14 +66,11 @@ cp "$HARNESS_DIR/.claude/skills/memory/SKILL.md"  "$TARGET_DIR/.claude/skills/me
 cp "$HARNESS_DIR/.claude/skills/review/SKILL.md"  "$TARGET_DIR/.claude/skills/review/SKILL.md"
 echo "✓ Skills installed (linear, memory, review)"
 
-# ── 9. settings.json — merge or create ───────────────────────────────────────
-SETTINGS_FILE="$TARGET_DIR/.claude/settings.json"
-
-# Build the hooks and permissions with substituted PKG_MANAGER
-SETTINGS_CONTENT=$(cat "$HARNESS_DIR/.claude/settings.json.template" | sed "s/<PKG_MANAGER>/$PKG_MANAGER/g")
+# ── 9. settings.local.json — always merge (never overwrite) ──────────────────
+SETTINGS_FILE="$TARGET_DIR/.claude/settings.local.json"
 
 if [ -f "$SETTINGS_FILE" ]; then
-  echo "Merging hooks into existing .claude/settings.json..."
+  echo "Merging hooks into existing .claude/settings.local.json..."
   python3 - "$SETTINGS_FILE" "$PKG_MANAGER" <<'PYEOF'
 import sys, json
 
@@ -128,10 +125,10 @@ for item in harness_deny:
 
 with open(settings_path, "w") as f:
     json.dump(existing, f, indent=2)
-print("✓ settings.json merged")
+print("✓ settings.local.json merged")
 PYEOF
 else
-  # Write fresh settings.json from template with PKG_MANAGER substituted
+  # Create fresh settings.local.json from template with PKG_MANAGER substituted
   python3 - "$HARNESS_DIR/.claude/settings.json.template" "$SETTINGS_FILE" "$PKG_MANAGER" <<'PYEOF'
 import sys, json, re
 
@@ -150,35 +147,21 @@ content = re.sub(r'\n\nNote:.*', '', content, flags=re.DOTALL)
 data = json.loads(content)
 with open(out_path, "w") as f:
     json.dump(data, f, indent=2)
-print("✓ settings.json created")
+print("✓ settings.local.json created")
 PYEOF
 fi
 
-# ── 10. CLAUDE.md — append import if not already present ─────────────────────
+# ── 10. CLAUDE.md — always overwrite ─────────────────────────────────────────
 CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
-IMPORT_LINE="@.claude/CLAUDE.md.template"
+cp "$HARNESS_DIR/.claude/CLAUDE.md.template" "$CLAUDE_MD"
+echo "✓ CLAUDE.md written (overwritten)"
 
-if [ -f "$CLAUDE_MD" ]; then
-  if grep -qF "$IMPORT_LINE" "$CLAUDE_MD"; then
-    echo "✓ CLAUDE.md already imports harness (skipped)"
-  else
-    echo "" >> "$CLAUDE_MD"
-    cat "$HARNESS_DIR/.claude/CLAUDE.md.template" >> "$CLAUDE_MD"
-    echo "✓ Harness section appended to existing CLAUDE.md"
-  fi
-else
-  cp "$HARNESS_DIR/.claude/CLAUDE.md.template" "$CLAUDE_MD"
-  echo "✓ CLAUDE.md created from harness template"
-fi
-
-# ── 11. conductor.json — create only if missing ───────────────────────────────
+# ── 11. conductor.json — always overwrite ─────────────────────────────────────
 CONDUCTOR_FILE="$TARGET_DIR/conductor.json"
 
-if [ -f "$CONDUCTOR_FILE" ]; then
-  echo "✓ conductor.json already exists — skipped (not overwritten)"
-else
+if true; then
   if [ "$USE_RAILWAY" = "y" ] || [ "$USE_RAILWAY" = "yes" ]; then
-    SETUP_CMD="ln -s \"\$CONDUCTOR_ROOT_PATH/.env\" .env && ${PKG_MANAGER} install && ${PKG_MANAGER} run generate:types 2>/dev/null || true && railway link --project <RAILWAY_PROJECT_ID> --environment <RAILWAY_DEV_ENVIRONMENT_ID> --service <RAILWAY_SERVICE_ID>"
+    SETUP_CMD="ln -s \"\$CONDUCTOR_ROOT_PATH/.env\" .env && source .env && ${PKG_MANAGER} install && ${PKG_MANAGER} run generate:types 2>/dev/null || true && railway link --project \$RAILWAY_PROJECT_ID --environment \$RAILWAY_ENVIRONMENT_ID --service \$RAILWAY_SERVICE_ID"
   else
     SETUP_CMD="ln -s \"\$CONDUCTOR_ROOT_PATH/.env\" .env && ${PKG_MANAGER} install && ${PKG_MANAGER} run generate:types 2>/dev/null || true"
   fi
@@ -192,14 +175,15 @@ setup_cmd = sys.argv[3]
 
 data = {
     "setup": setup_cmd,
-    "run": f"{pkg_manager} run dev"
+    "run": f"{pkg_manager} dev --port $CONDUCTOR_PORT",
+    "archive": "rm -rf .next node_modules .turbo"
 }
 with open(out_path, "w") as f:
     json.dump(data, f, indent=2)
-print("✓ conductor.json created")
+print("✓ conductor.json written (overwritten)")
 PYEOF
   if [ "$USE_RAILWAY" = "y" ] || [ "$USE_RAILWAY" = "yes" ]; then
-    echo "  → Edit conductor.json and replace RAILWAY_* placeholders with your project's IDs"
+    echo "  → Add RAILWAY_PROJECT_ID, RAILWAY_ENVIRONMENT_ID, RAILWAY_SERVICE_ID to your .env"
   fi
 fi
 
@@ -271,4 +255,4 @@ if [ "$USE_RAILWAY" = "y" ] || [ "$USE_RAILWAY" = "yes" ]; then
   echo "6. Edit conductor.json and replace the RAILWAY_* placeholders."
   echo ""
 fi
-echo "Docs: /Users/blaesild/Code/Harness/00 Harness.md"
+echo "Docs: https://github.com/blaesild/conductor-harness"
