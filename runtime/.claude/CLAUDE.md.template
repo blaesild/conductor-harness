@@ -1,0 +1,51 @@
+# [Project Name]
+
+> **Stack**: [framework] | [database] | [deployment] | [pkg manager]
+
+---
+
+## Orchestration
+
+**Plan first**: Enter plan mode for any non-trivial task (3+ steps or architectural decisions). If something goes sideways, stop and re-plan — don't push through.
+
+**Subagents**: Keep the main context clean — delegate to subagents for specialized domains. One task per subagent. Subagents cannot spawn subagents.
+
+**Delegate vs handle directly**:
+- Handle directly: < 3 files, known pattern, trivial change
+- Delegate: specialized domain, deep implementation, debugging, review
+
+**Verify before done**: Never mark complete without proving it works. Ask: "Would a staff engineer approve this?" Run tests, check logs, demonstrate correctness.
+
+**Memory over lessons**: After /done, a Graphiti episode is written. Before non-trivial work, search memory for past decisions. This is the self-improvement loop.
+
+---
+
+## Harness
+
+@.claude/skills/linear/SKILL.md
+@.claude/skills/memory/SKILL.md
+@.claude/skills/review/SKILL.md
+
+**Linear**: If an issue is attached to the current message, read it directly — no MCP fetch needed. Use the Linear MCP tool only for additional detail (comments, history, linked issues).
+
+**Startup**: SessionStart hook injects branch, git log, WORKFLOW.md, and last session progress. Read it before responding.
+
+**End of task**: Run /done. Do not update Linear or write memory without it.
+
+---
+
+## MCP Servers
+
+<!-- Add project-specific MCP servers here -->
+| Server | Purpose |
+|--------|---------|
+
+---
+
+## Key Docs
+
+<!-- Add: architecture docs, golden rules, README -->
+
+---
+
+**Philosophy**: Trust frameworks. Use native tools. Delegate with context. Simplify.

@@ -1,0 +1,31 @@
+# WORKFLOW.md — [Project Name]
+
+<!--
+North star for Claude Code sessions in this project.
+Injected by the SessionStart hook into every session.
+Update when: goals shift, architecture changes, or constraints change.
+Keep it short — this is injected into every session context.
+-->
+
+## What We're Building
+<!-- 1-3 sentences: what this is and who it's for -->
+
+## Current Phase
+<!-- MVP / feature-build / scaling / maintenance / migration -->
+
+## Stack
+<!-- Framework | Database | Deployment | Package manager -->
+
+## Architecture Notes
+<!-- 3-5 bullet points: non-obvious decisions that shape this codebase -->
+-
+-
+-
+
+## Active Constraints
+<!-- Rules Claude must follow for this project -->
+-
+
+## What We're NOT Building
+<!-- Explicit out-of-scope to prevent scope creep -->
+-

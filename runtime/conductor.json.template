@@ -1,0 +1,4 @@
+{
+  "setup": "ln -s \"$CONDUCTOR_ROOT_PATH/.env\" .env && <PKG_MANAGER> install && <PKG_MANAGER> run generate:types 2>/dev/null || true && railway link --project <RAILWAY_PROJECT_ID> --environment <RAILWAY_DEV_ENVIRONMENT_ID> --service <RAILWAY_SERVICE_ID>",
+  "run": "<PKG_MANAGER> run dev"
+}
