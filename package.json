@@ -1,6 +1,6 @@
 {
   "name": "conductor-harness",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Claude Code harness for Conductor projects — hooks, memory, Linear, and workflow context",
   "bin": {
     "conductor-harness": "./bin/conductor-harness.js"

@@ -158,10 +158,10 @@ print("✓ settings.local.json created")
 PYEOF
 fi
 
-# ── 10. CLAUDE.md — always overwrite ─────────────────────────────────────────
+# ── 10. CLAUDE.md — always overwrite, substitute detected pkg manager ─────────
 CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
-cp "$HARNESS_DIR/.claude/CLAUDE.md.template" "$CLAUDE_MD"
-echo "✓ CLAUDE.md written (overwritten)"
+sed "s/\[pkg manager\]/$PKG_MANAGER/g" "$HARNESS_DIR/.claude/CLAUDE.md.template" > "$CLAUDE_MD"
+echo "✓ CLAUDE.md written (overwritten, pkg manager: $PKG_MANAGER)"
 
 # ── 11. conductor.json — always overwrite ─────────────────────────────────────
 CONDUCTOR_FILE="$TARGET_DIR/conductor.json"
