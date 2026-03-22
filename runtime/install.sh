@@ -237,6 +237,16 @@ known_purposes = {
     "filesystem": "File system access",
     "brave-search": "Web search",
     "puppeteer": "Browser automation",
+    "railway": "Railway deployments — services, environments, logs",
+    "shadcn": "shadcn/ui component library reference",
+    "payload-mcp": "Payload CMS documentation and API reference",
+    "chrome-devtools": "Browser debugging via Chrome DevTools Protocol",
+    "context-mode": "Context management and file indexing",
+    "vercel": "Vercel deployments and project management",
+    "supabase": "Supabase database and auth",
+    "notion": "Notion pages and databases",
+    "slack": "Slack messaging",
+    "stripe": "Stripe payments API",
 }
 mcp_servers = {}
 claude_cfg = os.path.expanduser("~/.claude.json")
