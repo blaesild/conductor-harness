@@ -9,10 +9,11 @@ cwd = event.get("cwd", os.getcwd())
 
 # Detect project type and run appropriate type checker
 errors = []
-if os.path.exists(os.path.join(cwd, "tsconfig.json")):
+tsc_bin = os.path.join(cwd, "node_modules", ".bin", "tsc")
+if os.path.exists(os.path.join(cwd, "tsconfig.json")) and os.path.exists(tsc_bin):
     try:
         result = subprocess.run(
-            [os.path.join(cwd, "node_modules", ".bin", "tsc"), "--noEmit"],
+            [tsc_bin, "--noEmit"],
             cwd=cwd, capture_output=True, text=True, timeout=30
         )
         if result.returncode != 0:
