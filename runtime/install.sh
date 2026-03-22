@@ -98,11 +98,14 @@ harness_deny = [
 ]
 
 # Merge hooks — each event is a list of {matcher, hooks} objects
+# Also strip any old-format bare entries (missing the hooks array)
 if "hooks" not in existing:
     existing["hooks"] = {}
 for event, entry in harness_hooks.items():
     if event not in existing["hooks"]:
         existing["hooks"][event] = []
+    # Remove any old-format entries (bare {type, command} objects without a hooks array)
+    existing["hooks"][event] = [h for h in existing["hooks"][event] if "hooks" in h]
     existing_cmds = [
         cmd.get("command")
         for h in existing["hooks"][event]
