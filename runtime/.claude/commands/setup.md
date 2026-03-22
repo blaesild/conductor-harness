@@ -17,7 +17,7 @@ Then write `WORKFLOW.md` at the project root with:
 - **Stack**: detected framework, database, deployment, package manager
 - **Architecture Notes**: 3-5 non-obvious decisions derived from the codebase structure
 - **Active Constraints**: any rules found in CLAUDE.md or docs
-- **What We're NOT Building**: leave blank — ask Sebastian to fill this in
+- **What We're NOT Building**: leave blank — ask the user to fill this in
 
 After writing WORKFLOW.md:
 - Print "WORKFLOW.md created. Review it and fill in 'What We're NOT Building'."
