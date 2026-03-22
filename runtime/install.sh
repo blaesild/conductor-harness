@@ -354,9 +354,8 @@ EOF
   echo "✓ .harness/progress.md created"
 fi
 
-# ── 14. WORKFLOW.md — generate from project analysis ─────────────────────────
-if [ ! -f "$TARGET_DIR/WORKFLOW.md" ]; then
-  python3 - "$TARGET_DIR" "$PKG_MANAGER" "$USE_RAILWAY" <<'PYEOF'
+# ── 14. WORKFLOW.md — generate from project analysis (always regenerate) ──────
+python3 - "$TARGET_DIR" "$PKG_MANAGER" "$USE_RAILWAY" <<'PYEOF'
 import sys, json, os, re, subprocess
 
 cwd, pkg_manager, use_railway = sys.argv[1:]
@@ -517,9 +516,6 @@ with open(out_path, "w") as f:
 print(f"✓ WORKFLOW.md generated ({phase} | {framework})")
 print("  → Review it and fill in 'What We're NOT Building'")
 PYEOF
-else
-  echo "✓ WORKFLOW.md already exists (skipped)"
-fi
 
 # ── 15. .mcp.json — create or append Hindsight MCP entry ─────────────────────
 MCP_JSON="$TARGET_DIR/.mcp.json"
