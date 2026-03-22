@@ -54,7 +54,8 @@ echo "✓ Hooks installed"
 cp "$HARNESS_DIR/.claude/commands/start.md"  "$TARGET_DIR/.claude/commands/start.md"
 cp "$HARNESS_DIR/.claude/commands/done.md"   "$TARGET_DIR/.claude/commands/done.md"
 cp "$HARNESS_DIR/.claude/commands/status.md" "$TARGET_DIR/.claude/commands/status.md"
-echo "✓ Commands installed (/start, /done, /status)"
+cp "$HARNESS_DIR/.claude/commands/setup.md"  "$TARGET_DIR/.claude/commands/setup.md"
+echo "✓ Commands installed (/start, /done, /status, /setup)"
 
 # ── 7. Copy agents ───────────────────────────────────────────────────────────
 cp "$HARNESS_DIR/.claude/agents/memory-writer.md" "$TARGET_DIR/.claude/agents/memory-writer.md"
