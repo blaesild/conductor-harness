@@ -12,7 +12,7 @@ errors = []
 if os.path.exists(os.path.join(cwd, "tsconfig.json")):
     try:
         result = subprocess.run(
-            ["npx", "--no-install", "tsc", "--noEmit"],
+            ["npx", "tsc", "--noEmit"],
             cwd=cwd, capture_output=True, text=True, timeout=30
         )
         if result.returncode != 0:
