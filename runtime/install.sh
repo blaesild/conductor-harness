@@ -158,10 +158,130 @@ print("✓ settings.local.json created")
 PYEOF
 fi
 
-# ── 10. CLAUDE.md — always overwrite, substitute detected pkg manager ─────────
+# ── 10. CLAUDE.md — always overwrite with auto-detected project context ────────
 CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
-sed "s/\[pkg manager\]/$PKG_MANAGER/g" "$HARNESS_DIR/.claude/CLAUDE.md.template" > "$CLAUDE_MD"
-echo "✓ CLAUDE.md written (overwritten, pkg manager: $PKG_MANAGER)"
+python3 - "$HARNESS_DIR/.claude/CLAUDE.md.template" "$CLAUDE_MD" "$TARGET_DIR" "$PKG_MANAGER" "$USE_RAILWAY" <<'PYEOF'
+import sys, json, os, re
+
+template_path, out_path, cwd, pkg_manager, use_railway = sys.argv[1:]
+
+with open(template_path) as f:
+    content = f.read()
+
+# ── Read package.json ──────────────────────────────────────────────────────────
+pkg = {}
+pkg_path = os.path.join(cwd, "package.json")
+if os.path.exists(pkg_path):
+    with open(pkg_path) as f:
+        pkg = json.load(f)
+deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+project_name = pkg.get("name", os.path.basename(cwd))
+
+# ── Framework detection ────────────────────────────────────────────────────────
+framework = "unknown"
+if "next" in deps and "payload" in deps:
+    framework = "Next.js + Payload CMS"
+elif "next" in deps:
+    framework = "Next.js"
+elif "@remix-run/node" in deps or "remix" in deps:
+    framework = "Remix"
+elif "nuxt" in deps:
+    framework = "Nuxt"
+elif "hono" in deps:
+    framework = "Hono"
+elif "fastify" in deps:
+    framework = "Fastify"
+elif "express" in deps:
+    framework = "Express"
+elif "vite" in deps:
+    framework = "Vite"
+
+# ── Database detection ─────────────────────────────────────────────────────────
+database = "unknown"
+if "@payloadcms/db-postgres" in deps:
+    database = "PostgreSQL (Payload)"
+elif "@payloadcms/db-mongodb" in deps:
+    database = "MongoDB (Payload)"
+elif "@prisma/client" in deps or "prisma" in deps:
+    database = "PostgreSQL (Prisma)"
+elif "drizzle-orm" in deps:
+    database = "PostgreSQL (Drizzle)"
+elif "mongoose" in deps:
+    database = "MongoDB"
+elif "better-sqlite3" in deps:
+    database = "SQLite"
+elif "pg" in deps or "postgres" in deps:
+    database = "PostgreSQL"
+
+# ── Deployment detection ───────────────────────────────────────────────────────
+deployment = "unknown"
+if use_railway in ("y", "yes"):
+    deployment = "Railway"
+elif os.path.exists(os.path.join(cwd, "vercel.json")) or os.path.exists(os.path.join(cwd, ".vercel")):
+    deployment = "Vercel"
+elif os.path.exists(os.path.join(cwd, "fly.toml")):
+    deployment = "Fly.io"
+elif os.path.exists(os.path.join(cwd, "netlify.toml")):
+    deployment = "Netlify"
+elif os.path.exists(os.path.join(cwd, "Dockerfile")):
+    deployment = "Docker"
+
+# ── MCP servers ────────────────────────────────────────────────────────────────
+known_purposes = {
+    "hindsight": "Cross-session memory (decisions, gotchas, patterns)",
+    "linear": "Issue tracking — read/update Linear issues",
+    "context7": "Up-to-date framework and package documentation",
+    "graphiti-memory": "Graph memory",
+    "github": "GitHub repos, PRs, issues",
+    "postgres": "Direct database queries",
+    "filesystem": "File system access",
+    "brave-search": "Web search",
+    "puppeteer": "Browser automation",
+}
+mcp_servers = {}
+claude_cfg = os.path.expanduser("~/.claude.json")
+if os.path.exists(claude_cfg):
+    with open(claude_cfg) as f:
+        mcp_servers.update(json.load(f).get("mcpServers", {}))
+mcp_json = os.path.join(cwd, ".mcp.json")
+if os.path.exists(mcp_json):
+    with open(mcp_json) as f:
+        mcp_servers.update(json.load(f).get("mcpServers", {}))
+
+if mcp_servers:
+    rows = ["| Server | Purpose |", "|--------|---------|"]
+    for name in sorted(mcp_servers):
+        purpose = known_purposes.get(name, "—")
+        rows.append(f"| `{name}` | {purpose} |")
+    mcp_table = "\n".join(rows)
+else:
+    mcp_table = "| Server | Purpose |\n|--------|---------|"
+
+# ── Key docs ───────────────────────────────────────────────────────────────────
+doc_candidates = [
+    ("README.md", "Project overview"),
+    ("docs/", "Documentation folder"),
+    ("ARCHITECTURE.md", "Architecture notes"),
+    ("CONTRIBUTING.md", "Contribution guide"),
+    (".env.example", "Environment variables reference"),
+]
+found_docs = [f"- `{path}` — {desc}" for path, desc in doc_candidates
+              if os.path.exists(os.path.join(cwd, path))]
+key_docs = "\n".join(found_docs) if found_docs else "<!-- Add: architecture docs, golden rules, README -->"
+
+# ── Substitute ────────────────────────────────────────────────────────────────
+content = content.replace("[project-name]", project_name)
+content = content.replace("[framework]", framework)
+content = content.replace("[database]", database)
+content = content.replace("[deployment]", deployment)
+content = content.replace("[pkg-manager]", pkg_manager)
+content = content.replace("[mcp-servers-table]", mcp_table)
+content = content.replace("[key-docs]", key_docs)
+
+with open(out_path, "w") as f:
+    f.write(content)
+print(f"✓ CLAUDE.md written — {framework} | {database} | {deployment} | {pkg_manager}")
+PYEOF
 
 # ── 11. conductor.json — always overwrite ─────────────────────────────────────
 CONDUCTOR_FILE="$TARGET_DIR/conductor.json"

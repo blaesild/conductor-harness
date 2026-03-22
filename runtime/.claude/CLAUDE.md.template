@@ -1,6 +1,6 @@
-# [Project Name]
+# [project-name]
 
-> **Stack**: [framework] | [database] | [deployment] | [pkg manager]
+> **Stack**: [framework] | [database] | [deployment] | [pkg-manager]
 
 ---
 
@@ -38,15 +38,13 @@
 
 ## MCP Servers
 
-<!-- Add project-specific MCP servers here -->
-| Server | Purpose |
-|--------|---------|
+[mcp-servers-table]
 
 ---
 
 ## Key Docs
 
-<!-- Add: architecture docs, golden rules, README -->
+[key-docs]
 
 ---
 
