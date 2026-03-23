@@ -27,12 +27,19 @@ try:
 except Exception:
     git_log = "(no git history)"
 
+# Ensure .harness/ exists (worktrees don't inherit gitignored dirs)
+harness_dir = os.path.join(cwd, ".harness")
+os.makedirs(harness_dir, exist_ok=True)
+
 # Progress file
 progress = ""
-progress_path = os.path.join(cwd, ".harness", "progress.md")
+progress_path = os.path.join(harness_dir, "progress.md")
 if os.path.exists(progress_path):
     with open(progress_path) as f:
         progress = f.read().strip()
+else:
+    with open(progress_path, "w") as f:
+        f.write("# Harness Progress\n\nstatus: idle\n")
 
 # WORKFLOW.md — project north star
 workflow = ""
