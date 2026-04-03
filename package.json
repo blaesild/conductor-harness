@@ -1,6 +1,6 @@
 {
   "name": "conductor-harness",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Claude Code harness for Conductor projects — hooks, memory, Linear integration",
   "bin": {
     "conductor-harness": "./bin/conductor-harness.js"
@@ -9,7 +9,14 @@
     "bin",
     "runtime"
   ],
-  "keywords": ["claude-code", "conductor", "ai", "harness", "linear", "railway"],
+  "keywords": [
+    "claude-code",
+    "conductor",
+    "ai",
+    "harness",
+    "linear",
+    "railway"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
