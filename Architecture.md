@@ -18,9 +18,8 @@ status: active
 | /start command | `.claude/commands/start.md` | Task kickoff: fetch Linear, search memory, write progress | Explicit ritual; Claude loads full context before acting |
 | /done command | `.claude/commands/done.md` | Type check + write memory + update Linear + PR confirm | Explicit ritual; ensures memory is written before closing task |
 | /status command | `.claude/commands/status.md` | Show branch, Linear issue, progress, recent commits | Quick orientation check mid-task |
-| Memory writer | `.claude/agents/memory-writer.md` | Subagent that writes structured Graphiti episodes | Isolated tool use; single responsibility |
 | Linear skill | `.claude/skills/linear/SKILL.md` | How to use Linear MCP tool | Loaded by @import; available to all commands |
-| Memory skill | `.claude/skills/memory/SKILL.md` | How to use Graphiti MCP | Loaded by @import; available to all commands |
+| Memory skill | `.claude/skills/memory/SKILL.md` | How to use native memory system | Loaded by @import; available to all commands |
 | Review skill | `.claude/skills/review/SKILL.md` | Pre-PR checklist | Loaded by @import; run before every PR |
 | Progress file | `.harness/progress.md` | Persists task state between Claude responses | Survives session restarts; hooks read it |
 | Conductor config | `conductor.json` | Setup + run scripts for Conductor workspace | Wires package install, .env symlink, Railway link |
@@ -58,7 +57,7 @@ Claude Code opens project
         ▼
 [/done command]
   ├── run type checker + tests
-  ├── write Graphiti episode (memory-writer subagent)
+  ├── write native memory file (memory skill)
   ├── update .harness/progress.md (status: done)
   ├── update Linear issue → "In Review" + comment
   └── confirm: "Ready for PR. Run ⌘⇧P in Conductor."
@@ -79,18 +78,18 @@ The harness is project-local but memory is shared across sessions of the same pr
 
 ```
 Project A (nerdic-next)
-  .claude/hooks/session-start.sh  → group_id: "nerdic-next"
+  .claude/hooks/session-start.sh
   .claude/hooks/stop.sh
   .harness/progress.md            → local task state
-  Graphiti memory (cloud)         → semantic episodes, group_id: "nerdic-next"
+  ~/.claude/projects/.../memory/  → native memory (per project path)
 
 Project B (monomos)
-  .claude/hooks/session-start.sh  → group_id: "monomos"
+  .claude/hooks/session-start.sh
   ...
-  Graphiti memory (cloud)         → separate namespace, group_id: "monomos"
+  ~/.claude/projects/.../memory/  → separate namespace (different path)
 ```
 
-No cross-project memory bleed. group_id derived from git remote URL or directory name at runtime.
+No cross-project memory bleed. Isolation via filesystem path (each project gets its own `~/.claude/projects/` subdirectory).
 
 ## Why 3 Skills, Not More
 
@@ -103,20 +102,11 @@ Skills are loaded via `@import` in CLAUDE.md — they consume context on every s
 
 Progressive disclosure: skills describe the MCP tools and when to use them. Claude reads them once at session start and applies them throughout. No need to repeat instructions mid-session.
 
-## Why Zep Cloud Over Self-Hosted
+## Memory Backend
 
-For the harness baseline:
+Default: **Claude Code native memory** — zero config, zero cost. Memories stored as markdown files in `~/.claude/projects/[project-path]/memory/` with MEMORY.md index auto-loaded into every session.
 
-| Factor | Zep Cloud | Self-hosted Railway Graphiti |
-|--------|-----------|------------------------------|
-| Setup time | 0 (just API key) | 30-60 min Railway config |
-| Infra cost | $25/mo flat | ~$10-15/mo + management overhead |
-| Mobile access | Yes (cloud URL) | Yes (if Railway URL) |
-| MCP transport | HTTP/SSE (safe) | HTTP/SSE (safe) |
-| Migration | Single URL/key swap | N/A |
-| Downtime risk | Managed by Zep | Self-managed |
-
-Decision: start with Zep Cloud. The MCP URL is the only configuration difference when migrating to self-hosted. See `Memory Strategy.md` for migration steps.
+Optional: **Hindsight cloud** (opt-in during install) — adds semantic search via MCP. See `Memory Strategy.md` for historical context on cloud memory decisions.
 
 ## Conductor Integration
 

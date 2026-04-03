@@ -54,12 +54,10 @@ echo "✓ Hooks installed"
 cp "$HARNESS_DIR/.claude/commands/start.md"  "$TARGET_DIR/.claude/commands/start.md"
 cp "$HARNESS_DIR/.claude/commands/done.md"   "$TARGET_DIR/.claude/commands/done.md"
 cp "$HARNESS_DIR/.claude/commands/status.md" "$TARGET_DIR/.claude/commands/status.md"
-cp "$HARNESS_DIR/.claude/commands/setup.md"  "$TARGET_DIR/.claude/commands/setup.md"
-echo "✓ Commands installed (/start, /done, /status, /setup)"
+echo "✓ Commands installed (/start, /done, /status)"
 
-# ── 7. Copy agents ───────────────────────────────────────────────────────────
-cp "$HARNESS_DIR/.claude/agents/memory-writer.md" "$TARGET_DIR/.claude/agents/memory-writer.md"
-echo "✓ Agents installed"
+# ── 7. Agents directory (reserved for project-specific agents) ───────────────
+echo "✓ Agents directory ready"
 
 # ── 8. Copy skills ───────────────────────────────────────────────────────────
 cp "$HARNESS_DIR/.claude/skills/linear/SKILL.md"  "$TARGET_DIR/.claude/skills/linear/SKILL.md"
@@ -229,7 +227,7 @@ elif os.path.exists(os.path.join(cwd, "Dockerfile")):
 
 # ── MCP servers ────────────────────────────────────────────────────────────────
 known_purposes = {
-    "hindsight": "Cross-session memory (decisions, gotchas, patterns)",
+    "hindsight": "Cross-session cloud memory — optional supplement to native memory",
     "linear": "Issue tracking — read/update Linear issues",
     "context7": "Up-to-date framework and package documentation",
     "graphiti-memory": "Graph memory",
@@ -354,173 +352,13 @@ EOF
   echo "✓ .harness/progress.md created"
 fi
 
-# ── 14. WORKFLOW.md — generate from project analysis (always regenerate) ──────
-python3 - "$TARGET_DIR" "$PKG_MANAGER" "$USE_RAILWAY" <<'PYEOF'
-import sys, json, os, re, subprocess
+# ── 14. Hindsight cloud memory (optional) ─────────────────────────────────────
+read -r -p "Use Hindsight cloud memory? (default: native Claude Code memory) [y/N] " USE_HINDSIGHT
+USE_HINDSIGHT="$(echo "$USE_HINDSIGHT" | tr '[:upper:]' '[:lower:]')"
 
-cwd, pkg_manager, use_railway = sys.argv[1:]
-
-# ── package.json ──────────────────────────────────────────────────────────────
-pkg = {}
-pkg_path = os.path.join(cwd, "package.json")
-if os.path.exists(pkg_path):
-    with open(pkg_path) as f:
-        pkg = json.load(f)
-deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
-project_name = pkg.get("name", os.path.basename(cwd))
-description = pkg.get("description", "")
-
-# ── README — first paragraph ──────────────────────────────────────────────────
-readme_blurb = ""
-for readme in ["README.md", "readme.md", "README"]:
-    readme_path = os.path.join(cwd, readme)
-    if os.path.exists(readme_path):
-        with open(readme_path) as f:
-            lines = f.readlines()
-        para = []
-        for line in lines:
-            stripped = line.strip()
-            if stripped.startswith("#") or stripped.startswith("!["): continue
-            if stripped:
-                para.append(stripped)
-                if len(para) >= 2: break
-            elif para:
-                break
-        readme_blurb = " ".join(para)
-        break
-
-# ── What We're Building ───────────────────────────────────────────────────────
-what = description or readme_blurb or f"{project_name} — add a description here"
-
-# ── Framework / database / deployment (mirrors CLAUDE.md detection) ───────────
-framework = "unknown"
-if "next" in deps and "payload" in deps: framework = "Next.js + Payload CMS"
-elif "next" in deps: framework = "Next.js"
-elif "@remix-run/node" in deps or "remix" in deps: framework = "Remix"
-elif "nuxt" in deps: framework = "Nuxt"
-elif "hono" in deps: framework = "Hono"
-elif "fastify" in deps: framework = "Fastify"
-elif "express" in deps: framework = "Express"
-elif "vite" in deps: framework = "Vite"
-
-database = "unknown"
-if "@payloadcms/db-postgres" in deps: database = "PostgreSQL (Payload)"
-elif "@payloadcms/db-mongodb" in deps: database = "MongoDB (Payload)"
-elif "@prisma/client" in deps or "prisma" in deps: database = "PostgreSQL (Prisma)"
-elif "drizzle-orm" in deps: database = "PostgreSQL (Drizzle)"
-elif "mongoose" in deps: database = "MongoDB"
-elif "better-sqlite3" in deps: database = "SQLite"
-elif "pg" in deps or "postgres" in deps: database = "PostgreSQL"
-
-deployment = "unknown"
-if use_railway in ("y", "yes"): deployment = "Railway"
-elif os.path.exists(os.path.join(cwd, "vercel.json")) or os.path.exists(os.path.join(cwd, ".vercel")): deployment = "Vercel"
-elif os.path.exists(os.path.join(cwd, "fly.toml")): deployment = "Fly.io"
-elif os.path.exists(os.path.join(cwd, "netlify.toml")): deployment = "Netlify"
-elif os.path.exists(os.path.join(cwd, "Dockerfile")): deployment = "Docker"
-
-stack_line = f"{framework} | {database} | {deployment} | {pkg_manager}"
-
-# ── Current phase — infer from git log ───────────────────────────────────────
-phase = "feature-build"
-try:
-    log = subprocess.check_output(
-        ["git", "-C", cwd, "log", "--oneline", "-20"],
-        stderr=subprocess.DEVNULL, text=True
-    ).lower()
-    commit_count = int(subprocess.check_output(
-        ["git", "-C", cwd, "rev-list", "--count", "HEAD"],
-        stderr=subprocess.DEVNULL, text=True
-    ).strip())
-    if commit_count < 10 or any(w in log for w in ["init", "initial", "scaffold", "setup", "bootstrap"]):
-        phase = "MVP"
-    elif any(w in log for w in ["migrate", "rewrite", "refactor", "restructure"]):
-        phase = "migration"
-    elif any(w in log for w in ["fix", "bugfix", "patch", "hotfix"]) and \
-         not any(w in log for w in ["feat", "add", "new", "implement"]):
-        phase = "maintenance"
-except Exception:
-    pass
-
-# ── Architecture notes — infer from file structure ───────────────────────────
-notes = []
-if os.path.exists(os.path.join(cwd, "apps")) and os.path.exists(os.path.join(cwd, "packages")):
-    notes.append("Monorepo layout (apps/ + packages/)")
-if os.path.exists(os.path.join(cwd, "src")):
-    notes.append("Source lives in src/")
-if os.path.exists(os.path.join(cwd, "payload.config.ts")) or os.path.exists(os.path.join(cwd, "payload.config.js")):
-    notes.append("Payload CMS config at root — collections drive the data model")
-if os.path.exists(os.path.join(cwd, "prisma")):
-    notes.append("Prisma schema in prisma/ — run generate after schema changes")
-if os.path.exists(os.path.join(cwd, "drizzle")):
-    notes.append("Drizzle migrations in drizzle/")
-if os.path.exists(os.path.join(cwd, "middleware.ts")) or os.path.exists(os.path.join(cwd, "src/middleware.ts")):
-    notes.append("Next.js middleware active — check before touching auth/routing")
-if os.path.exists(os.path.join(cwd, "docker-compose.yml")) or os.path.exists(os.path.join(cwd, "docker-compose.yaml")):
-    notes.append("Docker Compose for local services")
-if os.path.exists(os.path.join(cwd, ".env.example")):
-    notes.append("Environment variables documented in .env.example")
-while len(notes) < 3:
-    notes.append("<!-- add a non-obvious architectural decision -->")
-
-notes_block = "\n".join(f"- {n}" for n in notes[:5])
-
-# ── Active constraints from CLAUDE.md ────────────────────────────────────────
-constraints = []
-claude_md = os.path.join(cwd, "CLAUDE.md")
-if os.path.exists(claude_md):
-    with open(claude_md) as f:
-        content = f.read()
-    # Pull out any deny/never/must lines as constraints
-    for line in content.splitlines():
-        l = line.strip()
-        if l.startswith("-") and any(w in l.lower() for w in ["never", "don't", "do not", "must", "always", "forbidden"]):
-            constraints.append(l)
-        if len(constraints) >= 3:
-            break
-if not constraints:
-    constraints = ["<!-- add project-specific rules for Claude to follow -->"]
-constraints_block = "\n".join(constraints)
-
-# ── Write WORKFLOW.md ─────────────────────────────────────────────────────────
-out_path = os.path.join(cwd, "WORKFLOW.md")
-content = f"""# WORKFLOW.md — {project_name}
-
-<!--
-North star for Claude Code sessions in this project.
-Injected by the SessionStart hook into every session.
-Update when: goals shift, architecture changes, or constraints change.
--->
-
-## What We're Building
-{what}
-
-## Current Phase
-{phase}
-
-## Stack
-{stack_line}
-
-## Architecture Notes
-{notes_block}
-
-## Active Constraints
-{constraints_block}
-
-## What We're NOT Building
-<!-- Explicit out-of-scope to prevent scope creep — fill this in -->
--
-"""
-with open(out_path, "w") as f:
-    f.write(content)
-print(f"✓ WORKFLOW.md generated ({phase} | {framework})")
-print("  → Review it and fill in 'What We're NOT Building'")
-PYEOF
-
-# ── 15. .mcp.json — create or append Hindsight MCP entry ─────────────────────
-MCP_JSON="$TARGET_DIR/.mcp.json"
-
-python3 - "$MCP_JSON" <<'PYEOF'
+if [ "$USE_HINDSIGHT" = "y" ] || [ "$USE_HINDSIGHT" = "yes" ]; then
+  MCP_JSON="$TARGET_DIR/.mcp.json"
+  python3 - "$MCP_JSON" <<'PYEOF'
 import sys, json, os
 
 mcp_path = sys.argv[1]
@@ -550,6 +388,9 @@ else:
 with open(mcp_path, "w") as f:
     json.dump(data, f, indent=2)
 PYEOF
+else
+  echo "✓ Using native Claude Code memory (no cloud setup needed)"
+fi
 
 # ── 16. Next steps ────────────────────────────────────────────────────────────
 echo ""
@@ -559,9 +400,14 @@ echo "════════════════════════�
 echo ""
 echo "Next steps:"
 echo ""
-echo "1. Add your Hindsight API key to .env:"
-echo "   HINDSIGHT_API_KEY=your_key_here"
-echo "   Get a key at: https://ui.hindsight.vectorize.io/connect"
+echo "1. Memory works out of the box via Claude Code's native memory system."
+echo "   No API key or configuration needed."
+if [ "$USE_HINDSIGHT" = "y" ] || [ "$USE_HINDSIGHT" = "yes" ]; then
+  echo ""
+  echo "   Hindsight cloud memory is also enabled. Add your API key to .env:"
+  echo "   HINDSIGHT_API_KEY=your_key_here"
+  echo "   Get a key at: https://ui.hindsight.vectorize.io/connect"
+fi
 echo ""
 echo "2. Register Linear MCP (once per machine, if not already):"
 echo "   claude mcp add linear -s user -- npx -y @linear/mcp-server"
@@ -572,11 +418,8 @@ echo "4. Start a task: /start LIN-123"
 echo "   End a task:   /done"
 echo "   Check status: /status"
 echo ""
-echo "5. Review WORKFLOW.md — auto-generated from your project. Fill in 'What We're NOT Building'."
-echo "   Run /setup inside Claude Code to regenerate it at any time."
-echo ""
 if [ "$USE_RAILWAY" = "y" ] || [ "$USE_RAILWAY" = "yes" ]; then
-  echo "6. Add Railway IDs to .env (or .env.local):"
+  echo "5. Add Railway IDs to .env (or .env.local):"
   echo "   RAILWAY_PROJECT_ID=your-project-id"
   echo "   RAILWAY_ENVIRONMENT_ID=your-environment-id"
   echo "   RAILWAY_SERVICE_ID=your-service-id"

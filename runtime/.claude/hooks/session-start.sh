@@ -41,17 +41,6 @@ else:
     with open(progress_path, "w") as f:
         f.write("# Harness Progress\n\nstatus: idle\n")
 
-# WORKFLOW.md — project north star
-workflow = ""
-for workflow_path in [
-    os.path.join(cwd, "WORKFLOW.md"),
-    os.path.join(cwd, ".harness", "WORKFLOW.md"),
-]:
-    if os.path.exists(workflow_path):
-        with open(workflow_path) as f:
-            workflow = f.read().strip()
-        break
-
 # Build context block
 lines = ["## Harness: Session Context", ""]
 lines.append(f"**Branch:** `{branch}`")
@@ -66,11 +55,7 @@ if progress:
     lines.append("")
     lines.append("**Last session progress:**")
     lines.append(progress)
-if workflow:
-    lines.append("")
-    lines.append("**Project context (WORKFLOW.md):**")
-    lines.append(workflow)
 lines.append("")
-lines.append("**Action:** Search Hindsight memory for context relevant to this branch/task before responding to the user. Use the `memory` skill if needed.")
+lines.append("**Action:** MEMORY.md is loaded automatically. Scan it for entries relevant to this branch/task before responding.")
 
 print(json.dumps({"promptText": "\n".join(lines)}))

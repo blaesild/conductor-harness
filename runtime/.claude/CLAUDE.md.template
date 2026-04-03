@@ -16,7 +16,7 @@
 
 **Verify before done**: Never mark complete without proving it works. Ask: "Would a staff engineer approve this?" Run tests, check logs, demonstrate correctness.
 
-**Memory over lessons**: After /done, a memory is written to Hindsight. Before non-trivial work, recall past decisions. This is the self-improvement loop.
+**Memory over lessons**: After /done, a memory is written. Before non-trivial work, check MEMORY.md for past decisions. This is the self-improvement loop.
 
 **Docs over assumptions**: AI knowledge has a cutoff. Before using any framework, library, or package API — fetch current docs via Context7 (`mcp__claude_ai_Context7__resolve-library-id` then `mcp__claude_ai_Context7__query-docs`). Never assume an API is current. This applies in plan mode too.
 
@@ -30,7 +30,7 @@
 
 **Linear**: If an issue is attached to the current message, read it directly — no MCP fetch needed. Use the Linear MCP tool only for additional detail (comments, history, linked issues).
 
-**Startup**: SessionStart hook injects branch, git log, WORKFLOW.md, and last session progress. Read it before responding.
+**Startup**: SessionStart hook injects branch, git log, and last session progress. Read it before responding.
 
 **End of task**: Run /done. Do not update Linear or write memory without it.
 

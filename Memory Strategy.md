@@ -1,12 +1,25 @@
 ---
 tags: [harness-engineering, claude-code, conductor, ai]
 created: 2026-03-20
-status: active
+status: superseded
 ---
 
 # Memory Strategy
 
-## Decision: Zep Cloud Flex
+## Update: Migration to Native Memory (2026-04)
+
+Claude Code now includes a built-in filesystem memory system at `~/.claude/projects/`. This replaces Zep Cloud / Hindsight as the **default** memory backend.
+
+- Zero cost, zero config, zero API key
+- Memories stored as markdown files with YAML frontmatter
+- MEMORY.md index loaded automatically into every session
+- Per-project isolation via filesystem path (not group_id)
+
+Hindsight remains available as an **optional** cloud supplement for semantic search across large memory sets. The episode schema and write/don't-write guidance remain unchanged.
+
+---
+
+## Historical: Zep Cloud Flex (2026-03)
 
 **Choice:** Zep Cloud Flex tier (~$25/mo)
 **Engine:** Graphiti (same engine used in Nerdic-next — Sebastian already knows it)

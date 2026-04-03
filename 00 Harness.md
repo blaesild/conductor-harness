@@ -21,12 +21,11 @@ A portable, self-managing harness for Claude Code + Conductor that works across 
 # 1. Run the installer from any project root (must be a git repo)
 bash /Users/blaesild/Documents/Brain/projects/Harness/runtime/install.sh
 
-# 2. Register the MCPs (one-time per machine, not per project)
-export ZEP_API_KEY=your_key_here
-claude mcp add graphiti-memory --transport sse --url https://mcp.getzep.com/sse --header "Authorization: Api-Key $ZEP_API_KEY"
+# 2. Register Linear MCP (one-time per machine, not per project)
 claude mcp add linear -s user -- npx -y @linear/mcp-server
 
 # 3. Open the project in Claude Code — hooks fire automatically
+# Memory works out of the box via Claude Code's native memory system
 ```
 
 After install, every Claude Code session in the project will:
@@ -51,10 +50,10 @@ Claude Code session starts
       ↓
 SessionStart hook fires (session-start.sh):
   - parse Linear issue ID from branch name
-  - git log --oneline -10
+  - git log --oneline -8
   - load .harness/progress.md if exists
-  - call Graphiti MCP: search_nodes(query=branch/issue context)
   - inject all as structured context block → Claude reads before first user message
+  - MEMORY.md loaded automatically by Claude Code
       ↓
 User runs /start LIN-123 (or Claude auto-starts from injected context)
       ↓
@@ -68,7 +67,7 @@ User runs /done
       ↓
 /done command:
   - Claude updates Linear issue status via MCP
-  - writes final episode to Graphiti
+  - writes memory file (native memory)
   - confirms ready for PR
       ↓
 Conductor: ⌘D review → ⌘⇧P create PR → merge → archive workspace
@@ -88,8 +87,7 @@ Conductor: ⌘D review → ⌘⇧P create PR → merge → archive workspace
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
-| Memory backend | Zep Cloud Flex ($25/mo) | Same Graphiti engine as Nerdic-next. Zero infra. HTTP/SSE MCP (safe — avoids hang bug). |
-| MCP transport | SSE (not stdio) | Claude Code Issue #15945: stdio can hang indefinitely |
+| Memory backend | Claude Code native (default) | Zero config, zero cost. Hindsight cloud available as opt-in supplement. |
 | Number of skills | 3 (linear, memory, review) | Progressive disclosure; context cost; maintenance burden |
 | Hook types | 2 (SessionStart, Stop) | SessionStart = context injection. Stop = type check enforcement. |
 | CLAUDE.md length | Import-only (harness section < 10 lines) | ETH Zurich study: bloated CLAUDE.md = ignored. Content lives in skill files. |
@@ -115,8 +113,8 @@ bash /Users/blaesild/Documents/Brain/projects/Harness/runtime/install.sh
 ### How to verify hooks loaded
 Open Claude Code in the project, type `/hooks` — you should see `session-start.sh` and `stop.sh` listed.
 
-### How to verify memory MCP
-Type `/mcp` in a Claude Code session — `graphiti-memory` should appear in the list.
+### How to verify memory
+Check `~/.claude/projects/[project-path]/memory/MEMORY.md` exists after writing a memory via `/done`.
 
 ### How to verify SessionStart
 Open a new Claude Code session in the project. The first context block should show a `## Harness: Session Context` header with branch name, recent commits, and last session progress.
