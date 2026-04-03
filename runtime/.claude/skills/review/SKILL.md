@@ -20,7 +20,7 @@ Run this before creating a PR. Check each item:
 
 ## Harness hygiene
 - [ ] `.harness/progress.md` updated with done status
-- [ ] Memory episode written to Graphiti (run /done if not done)
+- [ ] Memory written (run /done if not done)
 - [ ] No debug/temp files committed
 
 ## Git
