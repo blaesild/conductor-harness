@@ -41,6 +41,37 @@ else:
     with open(progress_path, "w") as f:
         f.write("# Harness Progress\n\nstatus: idle\n")
 
+# Detect worktree — resolve main repo root for memory persistence
+main_repo_root = cwd
+try:
+    git_common = subprocess.check_output(
+        ["git", "-C", cwd, "rev-parse", "--git-common-dir"],
+        stderr=subprocess.DEVNULL, text=True
+    ).strip()
+    # git-common-dir returns the .git dir of the main repo (not worktree's .git file)
+    # If it's not the same as the local .git dir, we're in a worktree
+    local_git = subprocess.check_output(
+        ["git", "-C", cwd, "rev-parse", "--git-dir"],
+        stderr=subprocess.DEVNULL, text=True
+    ).strip()
+    if os.path.abspath(git_common) != os.path.abspath(local_git):
+        # We're in a worktree — main repo root is parent of .git/
+        main_repo_root = os.path.dirname(os.path.abspath(git_common))
+except Exception:
+    pass
+
+is_worktree = os.path.abspath(main_repo_root) != os.path.abspath(cwd)
+
+# Read main repo's MEMORY.md if in a worktree (worktree memory path is ephemeral)
+main_memory = ""
+if is_worktree:
+    # Claude Code memory path: ~/.claude/projects/-path-segments/memory/MEMORY.md
+    sanitized = main_repo_root.replace("/", "-")
+    main_memory_path = os.path.expanduser(f"~/.claude/projects/{sanitized}/memory/MEMORY.md")
+    if os.path.exists(main_memory_path):
+        with open(main_memory_path) as f:
+            main_memory = f.read().strip()
+
 # Build context block
 lines = ["## Harness: Session Context", ""]
 lines.append(f"**Branch:** `{branch}`")
@@ -55,7 +86,23 @@ if progress:
     lines.append("")
     lines.append("**Last session progress:**")
     lines.append(progress)
-lines.append("")
-lines.append("**Action:** MEMORY.md is loaded automatically. Scan it for entries relevant to this branch/task before responding.")
+if is_worktree:
+    lines.append("")
+    lines.append(f"**Worktree detected.** Main repo: `{main_repo_root}`")
+    lines.append(f"Write all memories to the main repo's memory path, not the worktree's.")
+    # Provide the resolved main memory dir so Claude can write there
+    sanitized = main_repo_root.replace("/", "-")
+    main_mem_dir = os.path.expanduser(f"~/.claude/projects/{sanitized}/memory")
+    lines.append(f"**Memory directory:** `{main_mem_dir}/`")
+    lines.append(f"**Memory index:** `{main_mem_dir}/MEMORY.md`")
+    if main_memory:
+        lines.append("")
+        lines.append("**Main repo MEMORY.md:**")
+        lines.append(main_memory)
+    lines.append("")
+    lines.append("**Action:** Scan the main repo memory above for entries relevant to this branch/task before responding.")
+else:
+    lines.append("")
+    lines.append("**Action:** MEMORY.md is loaded automatically. Scan it for entries relevant to this branch/task before responding.")
 
 print(json.dumps({"promptText": "\n".join(lines)}))

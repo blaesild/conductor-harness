@@ -14,6 +14,10 @@ Uses Claude Code's built-in memory system. Memories are stored as markdown files
 - To **read** a specific memory: use the Read tool on a file listed in MEMORY.md
 - To **update** the index: add a one-line pointer to MEMORY.md after writing a memory file
 
+## Worktree sessions
+
+If the SessionStart hook reports a **worktree detected**, always write memories to the **main repo's memory path** (provided in the session context), not the worktree's. Worktree memory paths are ephemeral and get destroyed on cleanup. The hook provides the resolved memory directory and MEMORY.md path — use those directly.
+
 ## Memory file format
 
 ```markdown
